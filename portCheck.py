@@ -8,9 +8,10 @@ import time
 from datetime import datetime
 
 # variables and informing the user
-firstPort = 1
-lastPort = 65535
+firstPort = 1 # 21 # 1
+lastPort = 65535 # 443 # 65535
 waitTime = 3
+
 
 # Handling multiple or no arguments
 if len(sys.argv)>1:
@@ -23,7 +24,36 @@ def main():
     # clear the screen
     subprocess.call('clear', shell=True)
 
-    
+    # create and run scanner on port range
+    scanner = nmap.PortScanner()
+    scanner.scan(remoteServer, str(firstPort)+"-"+str(lastPort))
+
+    # make csv to parse...
+    scanInfo = scanner.csv()
+
+    test = scanInfo.split('\r\n')
+
+    # Print stuff
+    print(pyfiglet.figlet_format('PortCheck'))
+    print('Scanning ports on machine:',remoteServer,'\t(IP: ',socket.gethostbyname(remoteServer),')\n\n')
+    print('Port:\t\tProtocol:\t\tService:\t\tState:\t\tProduct:\t\tVersion:\t\tExtra Info:\t\tCPEs:')
+    firstLine = True
+    for line in test:
+        line = line.split(';', -1)
+        port = line[4]
+        protocol = line[3]
+        service = line[5]
+        state = line[6]
+        product = line[7]
+        version = line[10]
+        extra_info = line[8]
+        cpes = line[12]
+        if firstLine:
+            firstLine = False
+        else:
+            print('{}\t\t{}\t\t{}\t\t{}\t\t{}\t\t{}\t\t{}\t\t{}'.format(port,protocol,service,state,product,version,extra_info,cpes))
+
+    #print(test)
 
 
 
@@ -96,7 +126,9 @@ def main_OLD():
     # wrapping things up, for now...
     print("\n\nTotal scan time: ", elapsedTime)
 
-while True:
+
+main()
+while False:
     main()
 
     try:
