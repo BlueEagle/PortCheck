@@ -30,13 +30,38 @@ def main():
     startScanTime = datetime.now()
 
     try:
-        print("Port:\t\tService:")
+
+        # Print title
+        print("Port:\t\tService:\t\tRemote:")
+
+        # Loop through ports
         for port in range(firstPort, lastPort):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(0.5)
             result = sock.connect_ex((remoteServerIP, port))
+
+            # Collect peer name
+            try:
+                peerName = sock.getpeername()
+            except:
+                peerName = ""
+
+            # Collect service information
+            try:
+                serviceName = socket.getservbyport(port)
+            except:
+                # Make my own get service by port since the built in one is incompentent.
+                
+                serviceName = "unknown"
+                pass
+
+            
+            # Print each port's info
             if result == 0:
-                print(port, "\t\tN/A")
+                print(port,"\t\t"+ serviceName+"\t\t",peerName)
+            else:
+                if False:
+                    print("Connection refused for port",port)
             sock.close()
 
     except KeyboardInterrupt:
@@ -48,7 +73,8 @@ def main():
         sys.exit()
 
     except socket.error:
-        print ("\n\nSomething went wrong, generic error text here...")
+        print ("\n\nSomething went wrong, generic error text here...\n\n")
+        raise
         sys.exit()
 
     # still keeping time
