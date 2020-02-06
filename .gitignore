@@ -1,2 +1,3 @@
 portCheckEnv/
-activateEnv
+activatePortCheckShell
+.vscode/
