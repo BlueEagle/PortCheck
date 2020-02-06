@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import nmap
 import socket
 import subprocess
 import sys
@@ -17,7 +18,18 @@ if len(sys.argv)>1:
 else:
     remoteServer = "localhost"
 
+
 def main():
+    # clear the screen
+    subprocess.call('clear', shell=True)
+
+    
+
+
+
+
+
+def main_OLD():
     # clear the screen
     subprocess.call('clear', shell=True)
 
@@ -50,8 +62,6 @@ def main():
             try:
                 serviceName = socket.getservbyport(port)
             except:
-                # Make my own get service by port since the built in one is incompentent.
-                
                 serviceName = "unknown"
                 pass
 
