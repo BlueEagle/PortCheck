@@ -67,6 +67,7 @@ def main():
         alsoLines.append(line)
         
 
+
     print(tabulate(alsoLines, headers=header))
     #print(tabulate(lines, headers=header))
     
