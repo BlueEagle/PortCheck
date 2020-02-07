@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+import nmap
 import socket
+from tabulate import tabulate
 import subprocess
 import sys
 import pyfiglet
@@ -7,9 +9,10 @@ import time
 from datetime import datetime
 
 # variables and informing the user
-firstPort = 1
-lastPort = 65535
+firstPort = 1 # 21 # 1
+lastPort = 65535 # 443 # 65535
 waitTime = 3
+
 
 # Handling multiple or no arguments
 if len(sys.argv)>1:
@@ -17,76 +20,61 @@ if len(sys.argv)>1:
 else:
     remoteServer = "localhost"
 
+
 def main():
     # clear the screen
     subprocess.call('clear', shell=True)
 
+    # create and run scanner on port range
+    scanner = nmap.PortScanner()
+    scanner.scan(remoteServer, str(firstPort)+"-"+str(lastPort))
 
-    remoteServerIP = socket.gethostbyname(remoteServer)
-    print(pyfiglet.figlet_format("PortCheck"))
-    print("Scanning ports on machine: ", remoteServer, "\t(IP: ", remoteServerIP, ")\n\n")
+    # make csv to parse...
+    scanInfo = scanner.csv()
 
-    # keeping time
-    startScanTime = datetime.now()
+    # split 'CSV' into lines and remove emtpy elements
+    lines = scanInfo.split('\r\n')
+    lines = list(filter(None, lines))
 
-    try:
+    # Print stuff
+    print(pyfiglet.figlet_format('PortCheck'))
+    print('Scanning ports on machine: {}\t(IP: {})\n\n'.format(remoteServer, socket.gethostbyname(remoteServer)))
 
-        # Print title
-        print("Port:\t\tService:\t\tRemote:")
+    # Titles
+    #print('Port:\t\tProtocol:\t\tService:\t\tState:\t\tProduct:\t\tVersion:\t\tExtra Info:\t\tCPEs:')
+    header = ['Port:','Protocol:','Service:','State:', 'Product:', 'Version:','Extra Info:', 'CPEs:']
 
-        # Loop through ports
-        for port in range(firstPort, lastPort):
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(0.5)
-            result = sock.connect_ex((remoteServerIP, port))
+    # delete title line
+    lines.pop(0)
+    alsoLines = []
+    for line in lines:
 
-            # Collect peer name
-            try:
-                peerName = sock.getpeername()
-            except:
-                peerName = ""
+        # make it look pretty, vars for you sir!
+        line = line.split(';', -1)
+        port = line[4]
+        protocol = line[3]
+        service = line[5]
+        state = line[6]
+        product = line[7]
+        version = line[10]
+        extra_info = line[8]
+        cpes = line[12]
 
-            # Collect service information
-            try:
-                serviceName = socket.getservbyport(port)
-            except:
-                # Make my own get service by port since the built in one is incompentent.
-                
-                serviceName = "unknown"
-                pass
+        # generate modified line
+        line = [port,protocol,service,state,product,version,extra_info,cpes]
 
-            
-            # Print each port's info
-            if result == 0:
-                print(port,"\t\t"+ serviceName+"\t\t",peerName)
-            else:
-                if False:
-                    print("Connection refused for port",port)
-            sock.close()
+        # make it real, bro
+        alsoLines.append(line)
+        
 
-    except KeyboardInterrupt:
-        print("\n\nExcuse me! I wasn't finished!")
-        sys.exit()
 
-    except socket.gaierror:
-        print("\n\nTarget hostname could not resolve, try something else.")
-        sys.exit()
+    print(tabulate(alsoLines, headers=header))
+    #print(tabulate(lines, headers=header))
+    
 
-    except socket.error:
-        print ("\n\nSomething went wrong, generic error text here...\n\n")
-        raise
-        sys.exit()
 
-    # still keeping time
-    endScanTime = datetime.now()
-
-    # let me tell you how slow I am
-    elapsedTime = endScanTime - startScanTime
-
-    # wrapping things up, for now...
-    print("\n\nTotal scan time: ", elapsedTime)
-
-while True:
+main()
+while False:
     main()
 
     try:
