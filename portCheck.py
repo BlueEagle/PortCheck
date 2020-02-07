@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import nmap
 import socket
+from tabulate import tabulate
 import subprocess
 import sys
 import pyfiglet
@@ -31,14 +32,24 @@ def main():
     # make csv to parse...
     scanInfo = scanner.csv()
 
-    test = scanInfo.split('\r\n')
+    # split 'CSV' into lines and remove emtpy elements
+    lines = scanInfo.split('\r\n')
+    lines = list(filter(None, lines))
 
     # Print stuff
     print(pyfiglet.figlet_format('PortCheck'))
-    print('Scanning ports on machine:',remoteServer,'\t(IP: ',socket.gethostbyname(remoteServer),')\n\n')
-    print('Port:\t\tProtocol:\t\tService:\t\tState:\t\tProduct:\t\tVersion:\t\tExtra Info:\t\tCPEs:')
-    firstLine = True
-    for line in test:
+    print('Scanning ports on machine: {}\t(IP: {})\n\n'.format(remoteServer, socket.gethostbyname(remoteServer)))
+
+    # Titles
+    #print('Port:\t\tProtocol:\t\tService:\t\tState:\t\tProduct:\t\tVersion:\t\tExtra Info:\t\tCPEs:')
+    header = ['Port:','Protocol:','Service:','State:', 'Product:', 'Version:','Extra Info:', 'CPEs:']
+
+    # delete title line
+    lines.pop(0)
+    alsoLines = []
+    for line in lines:
+
+        # make it look pretty, vars for you sir!
         line = line.split(';', -1)
         port = line[4]
         protocol = line[3]
@@ -48,12 +59,17 @@ def main():
         version = line[10]
         extra_info = line[8]
         cpes = line[12]
-        if firstLine:
-            firstLine = False
-        else:
-            print('{}\t\t{}\t\t{}\t\t{}\t\t{}\t\t{}\t\t{}\t\t{}'.format(port,protocol,service,state,product,version,extra_info,cpes))
 
-    #print(test)
+        # generate modified line
+        line = [port,protocol,service,state,product,version,extra_info,cpes]
+
+        # make it real, bro
+        alsoLines.append(line)
+        
+
+    print(tabulate(alsoLines, headers=header))
+    #print(tabulate(lines, headers=header))
+    
 
 
 
